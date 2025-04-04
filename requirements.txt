@@ -1,4 +1,4 @@
-django
+django==4.2.6
 gunicorn
 whitenoise  # Để phục vụ tệp tĩnh
 psycopg2-binary  # Nếu bạn dùng PostgreSQL
