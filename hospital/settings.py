@@ -18,11 +18,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-og%_8wo!-i9xp939qe)8m@wto+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app', 'bc98-27-2-122-19.ngrok-free.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app', 'web-production-f1cf9.up.railway.app']
 if os.getenv('RAILWAY_STATIC_URL'):
     ALLOWED_HOSTS.append(os.getenv('RAILWAY_STATIC_URL'))
 
-CSRF_TRUSTED_ORIGINS = ['https://bc98-27-2-122-19.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://web-production-f1cf9.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -137,7 +137,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'your email host password
 VNPAY_TMN_CODE = os.getenv('VNPAY_TMN_CODE', '1HMX30X3')  # Terminal ID/Mã Website của bạn
 VNPAY_HASH_SECRET_KEY = os.getenv('VNPAY_HASH_SECRET_KEY', '236L0LORCIWV0RZKC73JXFTWHLTFPARM')  # Secret Key của bạn
 VNPAY_PAYMENT_URL = os.getenv('VNPAY_PAYMENT_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html')
-VNPAY_RETURN_URL = os.getenv('VNPAY_RETURN_URL', 'https://bc98-27-2-122-19.ngrok-free.app/vnpay-payment-return/')
+VNPAY_RETURN_URL = os.getenv('VNPAY_RETURN_URL', 'https://web-production-f1cf9.up.railway.app/vnpay-payment-return/')
 
 # Configure Django App for Heroku/Railway.
 if 'RAILWAY_STATIC_URL' in os.environ:
