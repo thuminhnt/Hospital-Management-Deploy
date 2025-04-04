@@ -12,6 +12,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Cài đặt dependencies Python
@@ -21,20 +22,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy toàn bộ mã nguồn
 COPY . .
 
-# Tạo thư mục staticfiles nếu chưa tồn tại
-RUN mkdir -p staticfiles
-
-# In ra nội dung thư mục để debug
+# In ra thông tin debug
+RUN pwd
 RUN ls -la
+RUN python --version
+RUN pip list
 
-# Kiểm tra file manage.py
-RUN test -f manage.py
+# Migrate database với verbose
+RUN python manage.py migrate --verbosity 2
 
-# Migrate database (bỏ qua lỗi)
-RUN python manage.py migrate || true
-
-# Collectstatic (bỏ qua lỗi)
-RUN python manage.py collectstatic --clear --noinput || true
+# Collectstatic
+RUN python manage.py collectstatic --noinput
 
 # Expose port
 EXPOSE 8000
