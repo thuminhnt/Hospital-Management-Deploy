@@ -17,10 +17,13 @@ RUN apt-get update && apt-get install -y \
 
 # Cài đặt dependencies Python
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt Pillow
 
 # Copy toàn bộ mã nguồn
 COPY . .
+
+# Tạo thư mục staticfiles nếu chưa tồn tại
+RUN mkdir -p staticfiles
 
 # In ra thông tin debug
 RUN pwd
