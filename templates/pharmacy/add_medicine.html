@@ -1,0 +1,112 @@
+{% extends base_template %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}Add New Medicine{% endblock title %}
+{% block page_title %}Add New Medicine to Inventory{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        {% if messages %}
+        <div class="row">
+          <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-plus-circle me-2"></i>Add New Medicine
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="name" class="form-label text-dark">
+                    <i class="fas fa-medkit me-2 text-primary"></i>Medicine Name
+                  </label>
+                  <input type="text" class="form-control" id="name" name="name" 
+                         required placeholder="Enter medicine name">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="description" class="form-label text-dark">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Description
+                  </label>
+                  <textarea class="form-control" id="description" name="description" 
+                            rows="3" placeholder="Enter medicine description"></textarea>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="price" class="form-label text-dark">
+                    <i class="fas fa-dollar-sign me-2 text-success"></i>Selling Price
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">VND</span>
+                    <input type="number" class="form-control" id="price" name="price" 
+                           min="0" step="1000" required placeholder="Enter price in multiples of 1000">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="quantity" class="form-label text-dark">
+                    <i class="fas fa-boxes me-2 text-warning"></i>Initial Stock
+                  </label>
+                  <input type="number" class="form-control" id="quantity" name="quantity" 
+                         min="0" required placeholder="Enter initial quantity">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label text-dark">
+                    <i class="fas fa-tags me-2 text-primary"></i>Medicine Category
+                  </label>
+                  <select class="form-select" name="category">
+                    <option value="">Select Category</option>
+                    <option value="tablet">Tablet</option>
+                    <option value="capsule">Capsule</option>
+                    <option value="syrup">Syrup</option>
+                    <option value="injection">Injection</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-end mt-4">
+                <a href="{% url 'medicine_list' %}" class="btn btn-secondary me-2">
+                  <i class="fas fa-times me-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-2"></i>Save Medicine
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Prevent negative numbers in price and quantity
+  const priceInput = document.getElementById('price');
+  const quantityInput = document.getElementById('quantity');
+  
+  [priceInput, quantityInput].forEach(input => {
+    input.addEventListener('input', function() {
+      if (parseFloat(this.value) < 0) {
+        this.value = '0';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

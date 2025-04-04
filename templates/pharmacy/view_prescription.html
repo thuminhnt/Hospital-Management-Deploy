@@ -1,0 +1,140 @@
+```html
+{% extends base_template %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}Prescription Details{% endblock title %}
+{% block page_title %}Prescription Details #{{ prescription.id }}{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h5 class="card-title text-dark">
+                  <i class="fas fa-file-medical me-2"></i>General Information
+                </h5>
+                <table class="table">
+                  <tr>
+                    <th>Patient:</th>
+                    <td>
+                      <i class="fas fa-user-injured me-2"></i>
+                      {{ prescription.patient.user.first_name }} 
+                      {{ prescription.patient.user.last_name }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Prescribing Doctor:</th>
+                    <td>
+                      <i class="fas fa-user-md me-2"></i>
+                      {{ prescription.doctor.user.first_name }} 
+                      {{ prescription.doctor.user.last_name }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Prescription Date:</th>
+                    <td>
+                      <i class="far fa-calendar-alt me-2"></i>
+                      {{ prescription.date_prescribed|date:"d/m/Y H:i" }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Notes:</th>
+                    <td>
+                      <i class="fas fa-notes-medical me-2"></i>
+                      {{ prescription.notes|default:"None" }}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="col-md-6">
+                <h5 class="card-title text-dark">
+                  <i class="fas fa-receipt me-2"></i>Payment Status
+                </h5>
+                <p>
+                  {% if prescription.is_paid %}
+                  <span class="badge text-white" style="background-color: #28a745;">
+                    <i class="fas fa-check-circle me-1"></i>
+                    Paid
+                  </span>
+                  <br>Payment Date: {{ prescription.paid_date|date:"d/m/Y H:i" }}
+                  {% else %}
+                  <span class="badge bg-warning text-dark">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    Unpaid
+                  </span>
+                  {% endif %}
+                </p>
+                <!-- Thay đổi hiển thị tổng giá -->
+                <p class="fw-bold">
+                  Total Price: 
+                  {{ prescription.total_price|intcomma }} VND
+                </p>
+              </div>
+            </div>
+
+            <h5 class="card-title mt-4 text-dark">
+              <i class="fas fa-pills me-2"></i>Medication List
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Medicine Name</th>
+                    <th class="text-center">Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total Price</th>
+                    <th>Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in items %}
+                  <tr>
+                    <td>{{ item.medicine.name }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <!-- Trong bảng chi tiết -->
+                    <td>{{ item.medicine.price|intcomma }} VND</td>
+                    <td>{{ item.item_price|intcomma }} VND</td>
+                    <td>{{ item.instructions|default:"None" }}</td>
+                  </tr>
+                  {% endfor %}
+                  <tr class="table-dark">
+                    <td colspan="3" class="text-end fw-bold">Total Price:</td>
+                    <td colspan="2" class="fw-bold">
+                      {{ prescription.total_price|floatformat:2 }} VND
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              {% if user.is_doctor %}
+              <a href="{% url 'doctor_prescriptions' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+              </a>
+              {% elif user.is_staff and not prescription.is_paid %}
+              <a href="{% url 'pending_prescriptions' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back
+              </a>
+              <a href="{% url 'process_prescription' prescription.id %}" class="btn btn-success">
+                <i class="fas fa-cash-register me-2"></i>Process Payment
+              </a>
+              {% else %}
+              <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+```

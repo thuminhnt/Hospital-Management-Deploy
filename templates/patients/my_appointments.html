@@ -1,8 +1,8 @@
 {% extends 'patients/base.html' %}
 {% load static %}
 
-{% block title %} Profile {% endblock title %}
-{% block page_title %} Patient Profile {% endblock page_title %}
+{% block title %} My Appointments {% endblock title %}
+{% block page_title %} My Appointments {% endblock page_title %}
 
 {% block content %}
 <main>
@@ -26,7 +26,10 @@
                     <label for="filter_doctor_name" class="mr-2">Doctor Name:</label>
                     <input type="text" name="filter_doctor_name" id="filter_doctor_name" class="form-control" value="{% if filter_doctor_name is not None %}{{ filter_doctor_name }}{% endif %}">
                 </div>
-                <button type="submit" class="btn btn-primary">Search</button>
+                <div class="d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2 px-4">Search</button>
+                    <a href="{% url 'my_appointments' %}" class="btn btn-secondary px-4">Reset</a>
+                </div>
             </form>
         </div>
         <div class="table-div">
@@ -42,15 +45,15 @@
                                                 <th>Doctor</th>
                                                 <th>Appt Date</th>
                                                 <th>Start Time</th>
-                                                <th>Suammry</th>
+                                                <th>Summary</th>
                                                 <th>Description</th>
-                                                <th>status</th>
+                                                <th>Status</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for appointment in appointments %}
-                                            <tr>
+                                            <tr class="{% if highlighted_appointment == appointment.id %}bg-warning bg-opacity-25{% endif %}">
                                                 <td>
                                                     <h2 class="table-avatar">
                                                         <div class="avatar avatar-sm mr-2">
@@ -63,7 +66,7 @@
                                                 <td><span class="d-block" style="font-size:16px;">{{ appointment.time.time }}</span></td>
                                                 <td><span class="d-block" style="font-size:16px;">{{ appointment.summary }}</span></td>
                                                 <td>
-                                                    <button type="button" class="btn primary-color-background btn-primary" data-toggle="modal" data-target="#descriptionModal{{ appointment.id }}">
+                                                    <button type="button" class="btn primary-color-background btn-primary" data-bs-toggle="modal" data-bs-target="#descriptionModal{{ appointment.id }}">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -88,7 +91,7 @@
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title text-dark" id="descriptionModalLabel{{ appointment.id }}">Description</h5>
-                                                            <button type="button" class="close btn" data-dismiss="modal" aria-label="Close">
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button> 
                                                         </div>
@@ -96,7 +99,7 @@
                                                             {{ appointment.description }}
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn secondary-color-background text-white" data-dismiss="modal">Close</button>
+                                                            <button type="button" class="btn secondary-color-background text-white" data-bs-dismiss="modal">Close</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -113,4 +116,21 @@
         </div>
     </section>
 </main>
+
+{% if highlighted_appointment %}
+<script>
+  // Tự động mở modal nếu đến từ remainder view
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = new bootstrap.Modal(document.getElementById('descriptionModal{{ highlighted_appointment }}'));
+    modal.show();
+    
+    // Cuộn đến appointment được highlight
+    document.querySelector('tr.bg-warning').scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  });
+</script>
+{% endif %}
+
 {% endblock %}

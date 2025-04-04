@@ -1,0 +1,131 @@
+{% extends base_template %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}Import Medicines{% endblock title %}
+{% block page_title %}New Medicine Import{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        {% if messages %}
+        <div class="row">
+          <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-truck-loading me-2"></i>Import New Medicines
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label text-dark">
+                    <i class="fas fa-pills me-2 text-primary"></i>Select Medicine
+                  </label>
+                  <select name="medicine" class="form-select" required>
+                    <option value="">-- Select Medicine --</option>
+                    {% for medicine in medicines %}
+                    <option value="{{ medicine.id }}">
+                      {{ medicine.name }} (Stock: {{ medicine.quantity }})
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label text-dark">
+                    <i class="fas fa-box me-2 text-warning"></i>Quantity to Import
+                  </label>
+                  <input type="number" name="quantity" class="form-control" 
+                         required min="1" placeholder="Enter quantity">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label text-dark">
+                    <i class="fas fa-dollar-sign me-2 text-success"></i>Import Price per Unit (VND)
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">VND</span>
+                    <input type="number" name="import_price" class="form-control" 
+                           required min="0" step="1000" placeholder="Enter price in multiples of 1000">
+                  </div>
+                </div>
+              </div>
+              <div class="text-end">
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-box-open me-2"></i>Import
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-history me-2"></i>Recent Import History
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-dark">Medicine</th>
+                    <th class="text-dark">Quantity</th>
+                    <th class="text-dark">Import Date</th>
+                    <th class="text-dark">Total Import Price</th>
+                    <th class="text-dark">Imported By</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in import_logs %}
+                  <tr>
+                    <td class="text-dark">{{ log.medicine.name }}</td>
+                    <td class="text-primary">{{ log.quantity_imported }}</td>
+                    <td class="text-dark">{{ log.import_date|date:"d/m/Y H:i" }}</td>
+                    <td class="text-success fw-bold">{{ log.total_import_price|floatformat:2 }} VND</td>
+                    <td class="text-dark">
+                      {% if log.nurse %}
+                        {{ log.nurse.user.first_name }} {{ log.nurse.user.last_name }}
+                      {% else %}
+                        Administrator
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">
+                      <i class="fas fa-box-open fa-3x mb-3"></i>
+                      <p>No import history available</p>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <a href="{% url 'medicine_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Medicine List
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

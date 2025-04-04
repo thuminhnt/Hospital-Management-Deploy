@@ -10,13 +10,10 @@
   <link  href="{% static 'css/style-appointments.css' %}" rel="stylesheet">
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
   <link href="{% static 'css/base-style.css' %}" rel="stylesheet"/>
-  {% comment %} <link href="{% static 'css/themify-icons.css' %}" rel="stylesheet"/> {% endcomment %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css">
   <link  href="{% static 'css/style.css' %}" rel="stylesheet">
   <link  href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
   <link  href="{% static 'css/jquery.dataTables.min.css' %}" rel="stylesheet">
-  <link  href="{% static 'css/styleblog.css' %}" rel="stylesheet">
-  <link  href="{% static 'css/styleblog-responsive.css' %}" rel="stylesheet">
 </head>
 
 <body>
@@ -44,36 +41,30 @@
           </a>
         </li>
         <li>
-          <a href="{% url 'doctor_blogs' %}">
-            <i>&#9777;&nbsp;&nbsp; </i> 
-            <span>Blogs</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'myblogs' %}">
-            <i>&#9729;&nbsp;&nbsp;</i>
-            <span>My Blogs</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'upload_blog' %}">
-            <i class="bi bi-cloud-arrow-up-fill"></i>
-            <span>&nbsp;&nbsp;Upload Blog</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'doctor_drafts' %}">
-            <i class="bi bi-envelope-open"></i>
-            <span>&nbsp;&nbsp;My Drafts</span>
-          </a>
-        </li>
-        <li>
           <a href="{% url 'view_appointments' %}">
             <i class="bi bi-file-medical-fill"></i> 
-            <span>&nbsp;&nbsp;view appointments</span>
+            <span>&nbsp;&nbsp;View appointments</span>
           </a>
         </li>
-        
+        <li>
+          <a href="{% url 'medicine_list' %}">
+            <i class="bi bi-capsule"></i> 
+            <span>&nbsp;&nbsp;Pharmacy Inventory</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'create_prescription' %}">
+            <i class="bi bi-file-earmark-text"></i> 
+            <span>&nbsp;&nbsp;Medication Prescription</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'doctor_prescriptions' %}">
+            <i class="bi bi-list-check"></i> 
+            <span>&nbsp;&nbsp;Prescribed prescriptions</span>
+          </a>
+        </li>
+
         <br><br>
 
         <li>

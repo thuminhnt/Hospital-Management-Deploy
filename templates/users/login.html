@@ -37,17 +37,11 @@
           required
           autofocus
         />
-        <div class="invalid-feedback">User ID is is invalid</div>
+        <div class="invalid-feedback">User ID is invalid</div>
       </div>
 
       <div class="mb-3">
-        <div class="mb-2 w-100">
-          <label class="text-muted" for="password">Password</label>
-          <a href="{% url 'password-reset' %}" class="float-end primary-color"
-            >Forgot Password?</a
-          >
-        </div>
-
+        <label class="text-muted" for="password">Password</label>
         <input
           id="password"
           type="password"

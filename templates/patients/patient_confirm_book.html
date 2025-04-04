@@ -4,57 +4,159 @@
 {% block page_title %} Patient Dashboard {% endblock page_title %} 
 {% block content %}
 <main>
-  <h2 class="dash-title">Appointment Booking Confirmation</h2>
   <section class="recent">
     <div class="table-div bg-white">
-      <div >
-        <div class="container">
-          <div class="row">
-            <div class="col-md-10 border p-4 shadow text-black" style="width: 100%; border-radius: 20px">
-              <div class="col-12 text-black">
-                <h3>Doctor Name: {{ doctor.user.last_name }} {{ doctor.user.first_name }}</h3>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-10 border p-4 shadow text-black" style="width: 100%; border-radius: 20px">
+            {% if messages %}
+              <div class="messages">
+                {% for message in messages %}
+                  <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" 
+                       role="alert"
+                       {% if message.tags == 'error' %}style="border: 2px solid #dc3545; background-color: #f8d7da; color: #721c24; font-weight: bold;"{% endif %}>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
               </div>
-              <form method="POST" class="needs-validation" nonalidate="" autocomplete="off" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label for="first-name" style="color: black">First Name:</label><br />
-                    <input type="text" class="form-control" name="foname" id="first-name" value="{{ request.user.first_name }}" disabled />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="last-name" style="color: black">Last Name:</label><br />
-                    <input type="text" class="form-control" id="last-name" name="loname" value="{{ request.user.last_name }}" disabled />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="dates" style="color: black">Select Date:</label><br />
-                    <input type="date" class="form-control" id="dates" name="date" placeholder="Enter Date" required />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="times" style="color: black">Select Time:</label><br />
-                    <select name="time" class="form-select">
-                      {% for time in times %}
-                      <option value="{{time.time}}">{{time.time}}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="col-md-12 mt-3">
-                    <label for="spec" style="color: black">Summary:</label><br />
-                    <input type="text" class="form-control" name="summary" id="spec" required />
-                  </div>
-                  <div class="col-md-12 mt-3">
-                    <label for="message" style="color: black">Description:</label><br />
-                    <textarea class="form-control" id="message" name="description"style="resize: vertical;"></textarea>
-                  </div>
-                  <div class="col-12 mt-5">
-                    <button type="submit" class="btn btn-success float-end">Book Appointment</button>
+            {% endif %}
+
+            <div class="col-12 text-black mb-4">
+              <h3>Doctor Name: Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h3>
+            </div>
+            
+            <form method="POST" class="needs-validation" novalidate autocomplete="off">
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="first-name" class="form-label">First Name:</label>
+                  <input type="text" class="form-control" name="foname" id="first-name" 
+                         value="{{ request.user.first_name }}" disabled />
+                </div>
+                <div class="col-md-6">
+                  <label for="last-name" class="form-label">Last Name:</label>
+                  <input type="text" class="form-control" id="last-name" name="loname" 
+                         value="{{ request.user.last_name }}" disabled />
+                </div>
+                <div class="col-md-6">
+                  <label for="dates" class="form-label">Select Date:</label>
+                  <input type="date" class="form-control" id="dates" name="date" required 
+                         min="{{ "now"|date:"Y-m-d" }}" />
+                </div>
+                <div class="col-md-6">
+                  <label for="times" class="form-label">Select Time:</label>
+                  <select name="time" id="times" class="form-select" required>
+                    <option value="">Choose a time</option>
+                    {% for time in times %}
+                      <option value="{{ time.time }}">
+                        {{ time.time }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-12 mt-3">
+                  <label for="spec" class="form-label">Summary:</label>
+                  <input type="text" class="form-control" name="summary" id="spec" 
+                         required placeholder="Brief summary of your appointment" />
+                </div>
+                <div class="col-md-12 mt-3">
+                  <label for="message" class="form-label">Description:</label>
+                  <textarea class="form-control" id="message" name="description" 
+                            style="resize: vertical;" 
+                            placeholder="Provide more details about your appointment"
+                            rows="4"></textarea>
+                </div>
+                <div class="col-12 mt-5">
+                  <div class="d-flex justify-content-between">
+                    <a href="{% url 'book_appointment' %}" class="btn btn-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-success px-4">Book Appointment</button>
                   </div>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
   </section>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dateInput = document.getElementById('dates');
+  const timeSelect = document.getElementById('times');
+
+  // Booked time slots from server
+  const bookedTimeSlots = JSON.parse('{{ booked_time_slots|safe }}');
+
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.setAttribute('min', today);
+
+  // Update time slots based on selected date
+  function updateTimeSlots() {
+    const selectedDate = dateInput.value;
+    
+    // Reset all options
+    Array.from(timeSelect.options).forEach(option => {
+      if (option.value) {
+        option.disabled = false;
+        option.style.color = '';
+        option.style.backgroundColor = '';
+      }
+    });
+
+    // Disable booked times for the selected date
+    if (bookedTimeSlots[selectedDate]) {
+      Array.from(timeSelect.options).forEach(option => {
+        if (bookedTimeSlots[selectedDate].includes(option.value)) {
+          option.disabled = true;
+          option.style.color = '#888';
+          option.style.backgroundColor = '#f4f4f4';
+        }
+      });
+    }
+
+    // If date is today, also disable past times
+    if (selectedDate === today) {
+      const currentHour = new Date().getHours();
+      const currentMinute = new Date().getMinutes();
+      
+      Array.from(timeSelect.options).forEach(option => {
+        if (option.value) {
+          const [hour, minute] = option.value.split(':').map(Number);
+          
+          if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+            option.disabled = true;
+            option.style.color = '#888';
+            option.style.backgroundColor = '#ffdddd'; // Light red for past times
+          }
+        }
+      });
+    }
+
+    // Reset selected time if it's now disabled
+    if (timeSelect.selectedOptions[0].disabled) {
+      timeSelect.selectedIndex = 0;
+    }
+  }
+
+  // Add event listener to date input
+  dateInput.addEventListener('change', updateTimeSlots);
+  
+  // Run once on page load
+  updateTimeSlots();
+
+  // Form validation
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    form.classList.add('was-validated');
+  }, false);
+});
+</script>
 {% endblock %}

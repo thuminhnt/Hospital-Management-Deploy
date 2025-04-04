@@ -1,0 +1,436 @@
+{% extends base_template %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}Process Payment{% endblock title %}
+{% block page_title %}Process Payment for Prescription #{{ prescription.id }}{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        {% if messages %}
+        <div class="row">
+          <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h5 class="card-title text-dark">
+                  <i class="fas fa-file-medical me-2"></i>Prescription Information
+                </h5>
+                <table class="table">
+                  <tr>
+                    <th>Patient:</th>
+                    <td>
+                      <i class="fas fa-user-injured me-2"></i>
+                      {{ prescription.patient.user.first_name }} 
+                      {{ prescription.patient.user.last_name }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Prescribing Doctor:</th>
+                    <td>
+                      <i class="fas fa-user-md me-2"></i>
+                      {{ prescription.doctor.user.first_name }} 
+                      {{ prescription.doctor.user.last_name }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Prescription Date:</th>
+                    <td>
+                      <i class="far fa-calendar-alt me-2"></i>
+                      {{ prescription.date_prescribed|date:"d/m/Y H:i" }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Notes:</th>
+                    <td>
+                      <i class="fas fa-notes-medical me-2"></i>
+                      {{ prescription.notes|default:"None" }}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="col-md-6">
+                <h5 class="card-title text-dark">
+                  <i class="fas fa-receipt me-2"></i>Payment Status
+                </h5>
+                <p class="text-danger">
+                  <strong>Unpaid</strong>
+                </p>
+                <p>
+                  <strong>Total Amount:</strong> 
+                  <span class="text-danger fw-bold" id="total-price" data-price="{{ prescription.total_price }}">
+                    {{ prescription.total_price|intcomma }} VND
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <h5 class="card-title mt-4 text-dark">
+              <i class="fas fa-pills me-2"></i>Medicine List
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Medicine Name</th>
+                    <th class="text-center">Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total Price</th>
+                    <th>Usage Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in items %}
+                  <tr>
+                    <td>{{ item.medicine.name }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td>{{ item.medicine.price|intcomma }} VND</td>
+                    <td>{{ item.item_price|intcomma }} VND</td>
+                    <td>{{ item.instructions|default:"None" }}</td>
+                  </tr>
+                  {% endfor %}
+                  <tr class="table-dark">
+                    <td colspan="3" class="text-end fw-bold">Total Amount:</td>
+                    <td colspan="2" class="fw-bold">
+                      {{ prescription.total_price|intcomma }} VND
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Payment Method Selection Tabs -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="paymentTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="cash-tab" data-bs-toggle="tab" data-bs-target="#cash-payment" 
+                            type="button" role="tab" aria-controls="cash-payment" aria-selected="true">
+                      <i class="bi bi-cash-coin me-2"></i>Cash
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr-payment" 
+                            type="button" role="tab" aria-controls="qr-payment" aria-selected="false">
+                      <i class="bi bi-qr-code me-2"></i>QR Code
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="vnpay-tab" data-bs-toggle="tab" data-bs-target="#vnpay-payment" 
+                            type="button" role="tab" aria-controls="vnpay-payment" aria-selected="false">
+                      <i class="bi bi-credit-card me-2"></i>VNPay
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              
+              <div class="card-body">
+                <div class="tab-content" id="paymentTabsContent">
+                  <!-- Cash Payment Tab -->
+                  <div class="tab-pane fade show active" id="cash-payment" role="tabpanel" aria-labelledby="cash-tab">
+                    <form method="post" id="cash-payment-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="payment_method" value="cash">
+                      
+                      <div class="row mb-3">
+                        <div class="col-md-4">
+                          <label for="amount-due" class="form-label">Amount Due:</label>
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="amount-due" value="{{ prescription.total_price|intcomma }}" readonly>
+                            <span class="input-group-text">VND</span>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label for="cash-received" class="form-label">Cash Received:</label>
+                          <div class="input-group">
+                            <input type="number" class="form-control" id="cash-received" name="cash_received" min="{{ prescription.total_price }}" step="1000" required>
+                            <span class="input-group-text">VND</span>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label for="change-due" class="form-label">Change Due:</label>
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="change-due" value="0" readonly>
+                            <span class="input-group-text">VND</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="quick-amount-buttons text-center mb-3">
+                            <p class="mb-2">Quick Amount Selection:</p>
+                            <button type="button" class="btn btn-outline-primary quick-amount me-2" data-amount="50000">50,000</button>
+                            <button type="button" class="btn btn-outline-primary quick-amount me-2" data-amount="100000">100,000</button>
+                            <button type="button" class="btn btn-outline-primary quick-amount me-2" data-amount="200000">200,000</button>
+                            <button type="button" class="btn btn-outline-primary quick-amount me-2" data-amount="500000">500,000</button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <input type="hidden" name="change_due" id="hidden-change-due" value="0">
+                      
+                      <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'pending_prescriptions' %}" class="btn btn-secondary">
+                          <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-success" id="confirm-cash-payment">
+                          <i class="fas fa-check me-2"></i>Confirm Cash Payment
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                  
+                  <!-- QR Payment Tab -->
+                  <div class="tab-pane fade" id="qr-payment" role="tabpanel" aria-labelledby="qr-tab">
+                    <div class="row mb-4">
+                      <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header bg-primary text-white" style="background-color: #007bff; color: #000; font-weight: bold;">
+                            <h5 class="mb-0">Scan QR Code for Payment</h5>
+                          </div>
+                          <div class="card-body text-center">
+                            <!-- Static QR code example - in a real implementation, this would be dynamically generated -->
+                            <div class="qr-wrapper border p-3 mb-3 d-inline-block">
+                              <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" 
+                                  alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                            </div>
+                            <div class="mb-2">
+                              <span class="badge bg-success" style="background-color: #28a745; color: #fff; font-weight: bold;">
+                                Supports all e-wallets
+                              </span>
+                            </div>
+                            <p class="mb-1">Scan the QR code using a banking app or e-wallet</p>
+                            <p class="fw-bold">Amount: {{ prescription.total_price|intcomma }} VND</p>
+                            <p class="text-muted small">Transfer Content: PAYMENT{{ prescription.id }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header bg-info text-white" style="background-color: #17a2b8; color: #000; font-weight: bold;">
+                            <h5 class="mb-0">Transfer Information</h5>
+                          </div>
+                          <div class="card-body">
+                            <form method="post" id="qr-payment-form">
+                              {% csrf_token %}
+                              <input type="hidden" name="payment_method" value="qr">
+                              
+                              <p class="fw-bold">Please enter the information after payment:</p>
+                              
+                              <div class="mb-3">
+                                <label for="qr-transaction-id" class="form-label" style="color: #000; font-weight: 500;">Transaction ID:</label>
+                                <input type="text" class="form-control" id="qr-transaction-id" name="transaction_id" required 
+                                       placeholder="Enter the transaction ID from the payment app">
+                              </div>
+                              
+                              <div class="mb-3">
+                                <label for="qr-payment-provider" class="form-label" style="color: #000; font-weight: 500;">Payment App:</label>
+                                <select class="form-select" id="qr-payment-provider" name="payment_provider" required>
+                                  <option value="">Select a payment app</option>
+                                  <option value="momo">MoMo</option>
+                                  <option value="zalopay">ZaloPay</option>
+                                  <option value="vnpay">VNPay</option>
+                                  <option value="bank_app">Bank App</option>
+                                  <option value="other">Other</option>
+                                </select>
+                              </div>
+                              
+                              <div class="mb-3">
+                                <label for="qr-customer-phone" class="form-label" style="color: #000; font-weight: 500;">Customer Phone:</label>
+                                <input type="text" class="form-control" id="qr-customer-phone" name="customer_phone" 
+                                       placeholder="Enter the customer's phone number">
+                              </div>
+                              
+                              <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="qr-payment-confirmed" name="payment_confirmed" required>
+                                <label class="form-check-label" for="qr-payment-confirmed" style="color: #000; font-weight: 500;">
+                                  I confirm that I have verified the payment transaction
+                                </label>
+                              </div>
+                              
+                              <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary" id="confirm-qr-payment">
+                                  <i class="fas fa-check me-2"></i>Confirm QR Payment
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                      <h6 class="alert-heading">Payment Verification Instructions:</h6>
+                      <ol class="mb-0">
+                        <li>Ask the patient to show the successful transaction confirmation screen</li>
+                        <li>Verify that the paid amount matches the amount due</li>
+                        <li>Confirm the transaction ID on the patient's screen</li>
+                        <li>Enter the transaction ID and related information into the form</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <!-- VNPay Payment Tab -->
+                  <div class="tab-pane fade" id="vnpay-payment" role="tabpanel" aria-labelledby="vnpay-tab">
+                    <div class="row mb-4">
+                      <div class="col-md-12">
+                        <div class="card">
+                          <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Thanh toán qua VNPay</h5>
+                          </div>
+                          <div class="card-body">
+                            <form method="post" id="vnpay-payment-form">
+                              {% csrf_token %}
+                              <input type="hidden" name="payment_method" value="vnpay">
+                              
+                              <div class="mb-3">
+                                <label for="vnpay-bank-code" class="form-label">Chọn Ngân hàng (Tùy chọn):</label>
+                                <select class="form-select" id="vnpay-bank-code" name="bank_code">
+                                  <option value="">-- Tất cả các ngân hàng --</option>
+                                  <option value="NCB">NCB Bank</option>
+                                  <option value="VIETCOMBANK">Vietcombank</option>
+                                  <option value="VIETINBANK">Vietinbank</option>
+                                  <option value="BIDV">BIDV</option>
+                                  <option value="TECHCOMBANK">Techcombank</option>
+                                  <option value="SACOMBANK">Sacombank</option>
+                                  <option value="MBBANK">MB Bank</option>
+                                  <option value="TPBANK">TPBank</option>
+                                  <option value="VIB">VIB Bank</option>
+                                  <option value="ACB">ACB Bank</option>
+                                </select>
+                              </div>
+                              
+                              <div class="alert alert-info">
+                                <p class="mb-0">
+                                  <i class="bi bi-info-circle me-2"></i>
+                                  Sau khi nhấn nút "Thanh toán qua VNPay", bạn sẽ được chuyển đến cổng thanh toán VNPay để hoàn tất giao dịch.
+                                </p>
+                              </div>
+                              
+                              <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'pending_prescriptions' %}" class="btn btn-secondary">
+                                  <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="confirm-vnpay-payment">
+                                  <i class="fas fa-credit-card me-2"></i>Thanh toán qua VNPay
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const totalPrice = parseFloat(document.getElementById('total-price').getAttribute('data-price'));
+    const cashReceivedInput = document.getElementById('cash-received');
+    const changeDueInput = document.getElementById('change-due');
+    const hiddenChangeDue = document.getElementById('hidden-change-due');
+    const quickAmountButtons = document.querySelectorAll('.quick-amount');
+    const confirmCashPaymentButton = document.getElementById('confirm-cash-payment');
+    const cashPaymentForm = document.getElementById('cash-payment-form');
+    
+    // Calculate change
+    function calculateChange() {
+      const cashReceived = parseFloat(cashReceivedInput.value) || 0;
+      let changeDue = 0;
+      
+      if (cashReceived >= totalPrice) {
+        changeDue = cashReceived - totalPrice;
+        confirmCashPaymentButton.disabled = false;
+      } else {
+        confirmCashPaymentButton.disabled = true;
+      }
+      
+      // Format to whole numbers for VND
+      changeDueInput.value = Math.round(changeDue).toLocaleString('vi-VN');
+      hiddenChangeDue.value = changeDue;
+    }
+    
+    // Listen for input changes
+    if (cashReceivedInput) {
+      cashReceivedInput.addEventListener('input', calculateChange);
+      
+      // Set minimum value for cash received
+      cashReceivedInput.min = totalPrice;
+      
+      // Pre-select amount if the total is a round number
+      if (totalPrice % 1000 === 0) {
+        cashReceivedInput.value = totalPrice;
+      } else {
+        // Round up to the nearest 1000
+        const roundedUp = Math.ceil(totalPrice / 1000) * 1000;
+        cashReceivedInput.value = roundedUp;
+      }
+      
+      // Initialize change calculation
+      calculateChange();
+    }
+    
+    // Quick amount buttons
+    quickAmountButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const amount = parseFloat(this.getAttribute('data-amount'));
+        cashReceivedInput.value = amount;
+        calculateChange();
+      });
+    });
+    
+    // Form validation before submit for cash payment
+    if (cashPaymentForm) {
+      cashPaymentForm.addEventListener('submit', function(event) {
+        const cashReceived = parseFloat(cashReceivedInput.value) || 0;
+        
+        if (cashReceived < totalPrice) {
+          event.preventDefault();
+          alert('The amount received must be greater than or equal to the total amount due.');
+        }
+      });
+    }
+    
+    // Save active tab in session storage
+    const paymentTabs = document.querySelectorAll('.nav-link');
+    paymentTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        sessionStorage.setItem('activePaymentTab', this.id);
+      });
+    });
+    
+    // Restore active tab from session storage
+    const activeTab = sessionStorage.getItem('activePaymentTab');
+    if (activeTab) {
+      const tabElement = document.getElementById(activeTab);
+      if (tabElement) {
+        const tabInstance = new bootstrap.Tab(tabElement);
+        tabInstance.show();
+      }
+    }
+  });
+</script>
+{% endblock %}

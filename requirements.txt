@@ -1,1 +1,6 @@
-Django
+django
+gunicorn
+whitenoise  # Để phục vụ tệp tĩnh
+psycopg2-binary  # Nếu bạn dùng PostgreSQL
+dj-database-url  # Để cấu hình database URL
+python-dotenv  # Để quản lý biến môi trường

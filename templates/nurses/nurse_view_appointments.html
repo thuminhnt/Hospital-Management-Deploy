@@ -1,0 +1,219 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %} View All Appointments {% endblock title %}
+{% block page_title %} View All Appointments {% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="d-flex justify-content-center">
+      <div class="table-div" style="max-width: 1200px; width: 100%; padding: 20px;">
+        <div class="col-md-12 mx-auto">
+          {% if messages %}
+          <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          
+          <div class="filter-section mb-4">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Search Appointments</h5>
+              </div>
+              <div class="card-body">
+                <form method="get" class="row">
+                  <div class="col-md-3 mb-3">
+                    <label for="filter_status" class="form-label text-dark">Status:</label>
+                    <select name="filter_status" id="filter_status" class="form-control form-select">
+                      <option value="" {% if not filter_status or filter_status == 'All' %}selected{% endif %}>All</option>
+                      <option value="Accepted" {% if filter_status == "Accepted" %}selected{% endif %}>Accepted</option>
+                      <option value="Waited" {% if filter_status == "Waited" %}selected{% endif %}>Waited</option>
+                      <option value="Cancelled" {% if filter_status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label for="filter_date" class="form-label text-dark">Date:</label>
+                    <input type="date" name="filter_date" id="filter_date" class="form-control" value="{{ filter_date }}">
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label for="filter_patient_name" class="form-label text-dark">Patient Name:</label>
+                    <input type="text" name="filter_patient_name" id="filter_patient_name" class="form-control" value="{% if filter_patient_name is not None %}{{ filter_patient_name }}{% endif %}">
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label for="filter_doctor_name" class="form-label text-dark">Doctor Name:</label>
+                    <input type="text" name="filter_doctor_name" id="filter_doctor_name" class="form-control" value="{% if filter_doctor_name is not None %}{{ filter_doctor_name }}{% endif %}">
+                  </div>
+                  <div class="col-md-12 text-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                      Search
+                    </button>
+                    <a href="{% url 'nurse_view_appointments' %}" class="btn btn-secondary">
+                      Reset
+                    </a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="appointments-container">
+            <div class="card">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0">All Appointments</h5>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-center">ID</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Time</th>
+                        <th>Summary</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for appointment in appointments %}
+                      <tr class="{% if highlighted_appointment == appointment.id %}bg-warning bg-opacity-25{% endif %}">
+                        <td class="text-center">{{ appointment.id }}</td>
+                        <td>{{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</td>
+                        <td>Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}</td>
+                        <td class="text-center">{{ appointment.start_date }}</td>
+                        <td class="text-center">{{ appointment.time.time }}</td>
+                        <td>{{ appointment.summary }}</td>
+                        <td class="text-center">{{ appointment.status.status }}</td>
+                        <td class="text-center">
+                          <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ appointment.id }}">
+                            View
+                          </button>
+                        </td>
+                      </tr>
+
+                      <!-- Modal for Appointment Details -->
+                      <div class="modal fade" id="viewModal{{ appointment.id }}" tabindex="-1" aria-labelledby="viewModalLabel{{ appointment.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title fw-bold" id="viewModalLabel{{ appointment.id }}" style="color: #000; font-size: 1rem;">Appointment Details</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" style="font-size: 0.8rem; color: #000;">
+                              <!-- Patient and Doctor Information -->
+                              <div class="row mb-3">
+                                <div class="col-md-6">
+                                  <span class="fw-bold" style="color: #000;">Patient:</span> 
+                                  <span style="color: #000;">{{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                  <span class="fw-bold" style="color: #000;">Doctor:</span> 
+                                  <span style="color: #000;">Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}</span>
+                                </div>
+                              </div>
+                              <!-- Date and Time Information -->
+                              <div class="row mb-3">
+                                <div class="col-md-6">
+                                  <span class="fw-bold" style="color: #000;">Date:</span> 
+                                  <span style="color: #000;">{{ appointment.start_date }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                  <span class="fw-bold" style="color: #000;">Time:</span> 
+                                  <span style="color: #000;">{{ appointment.time.time }}</span>
+                                </div>
+                              </div>
+                              <!-- Summary and Description -->
+                              <div class="mb-3">
+                                <span class="fw-bold" style="color: #000;">Summary:</span> 
+                                <span style="color: #000;">{{ appointment.summary }}</span>
+                              </div>
+                              <div class="mb-3">
+                                <span class="fw-bold" style="color: #000;">Description:</span>
+                                <p style="color: #000;">{{ appointment.description }}</p>
+                              </div>
+                              
+                              <!-- Update Status Form -->
+                              <form method="post" id="statusForm{{ appointment.id }}">
+                                {% csrf_token %}
+                                <div class="row">
+                                  <!-- Update Status Dropdown -->
+                                  <div class="col-md-6">
+                                    <div class="mb-3">
+                                      <label for="statusSelect{{ appointment.id }}" class="form-label fw-bold" style="color: #000;">Update Status:</label>
+                                      <select name="status" id="statusSelect{{ appointment.id }}" class="form-select" style="font-size: 0.8rem; color: #000;">
+                                        <option value="Accepted" {% if appointment.status.status == "Accepted" %}selected{% endif %}>Accepted</option>
+                                        <option value="Waited" {% if appointment.status.status == "Waited" %}selected{% endif %}>Waited</option>
+                                        <option value="Cancelled" {% if appointment.status.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <!-- Current Status Display -->
+                                  <div class="col-md-6">
+                                    <div class="mb-3">
+                                      <label class="form-label fw-bold" style="color: #000;">Current Status:</label>
+                                      <div class="fw-bold" style="color: #000; font-size: 0.8rem;">
+                                        {{ appointment.status.status }}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <!-- Hidden Input for Appointment ID -->
+                                <input type="hidden" value="{{ appointment.id }}" name="app">
+                                <!-- Submit Button -->
+                                <div class="d-grid">
+                                  <button type="submit" class="btn btn-primary fw-bold" style="color: #fff; font-size: 0.8rem;">Update Status</button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {% empty %}
+                      <tr>
+                        <td colspan="8" class="text-center py-4">
+                          <div class="no-results">
+                            <p class="text-muted">No appointments found matching your criteria</p>
+                            {% if filter_status or filter_date or filter_patient_name or filter_doctor_name %}
+                            <a href="{% url 'nurse_view_appointments' %}" class="btn btn-outline-primary btn-sm mt-2">
+                              Clear all filters
+                            </a>
+                            {% endif %}
+                          </div>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% if highlighted_appointment %}
+<script>
+  // Auto-open modal if coming from a link with appointment ID
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = new bootstrap.Modal(document.getElementById('viewModal{{ highlighted_appointment }}'));
+    modal.show();
+    
+    // Scroll to highlighted appointment
+    document.querySelector('tr.bg-warning').scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

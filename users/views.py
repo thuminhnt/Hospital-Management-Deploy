@@ -1,24 +1,24 @@
-from django.shortcuts import render
-
+from django.http import request
+from django.http.response import HttpResponse
 from multiprocessing import context
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
-from .models import Doctors, Patients, Address , Reste_token , Specialty
+from .models import Doctors, Patients, Address , Reste_token , Specialty, Users, Nurses
 from .helpers import send_email
 import uuid
-
 
 Users = get_user_model()
 
 def register(request):
   specialities = Specialty.objects.all()
   if request.method == 'POST':
-    user_status = request.POST.get('user_config')
+    # Chỉ cho phép đăng ký tài khoản bệnh nhân qua form đăng ký
+    user_status = "Patient"  # Mặc định chỉ cho phép đăng ký bệnh nhân
     first_name = request.POST.get('user_firstname')
     last_name = request.POST.get('user_lastname')
     profile_pic = ""
@@ -37,19 +37,26 @@ def register(request):
     city = request.POST.get('city')
     pincode = request.POST.get('pincode')
 
+    # Các kiểm tra về mật khẩu giữ nguyên
     if len(password) < 6:
       messages.error(request, 'Password must be at least 6 characters long.')
-      return render(request, 'users/register.html', context={'user_config': user_status, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
+      return render(request, 'users/register.html', context={'specialities': specialities, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
 
     if password != confirm_password:
       messages.error(request, 'Passwords do not match.')
-      return render(request, 'users/register.html', context={'user_config': user_status, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
+      return render(request, 'users/register.html', context={'specialities': specialities, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
 
+    # Kiểm tra username đã tồn tại chưa
     if Users.objects.filter(username=username).exists():
       messages.error(request, 'Username already exists. Try again with a different username.')
-      return render(request, 'users/register.html', context={'user_config': user_status, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
+      return render(request, 'users/register.html', context={'specialities': specialities, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
 
-    address = Address.objects.create(address_line=address_line, region=region,city=city, code_postal=pincode)
+    # Kiểm tra email đã tồn tại chưa
+    if Users.objects.filter(email=email).exists():
+      messages.error(request, 'Email already exists. Try again with a different email.')
+      return render(request, 'users/register.html', context={'specialities': specialities, 'user_firstname': first_name, 'user_lastname': last_name, 'user_id': username, 'email': email, 'user_gender': gender, 'address_line': address_line, 'region': region, 'city': city, 'pincode': pincode})
+
+    address = Address.objects.create(address_line=address_line, region=region, city=city, code_postal=pincode)
 
     user = Users.objects.create_user(
       first_name=first_name,
@@ -61,51 +68,42 @@ def register(request):
       birthday=birthday,
       password=password,
       id_address=address,
-      is_doctor=(user_status == 'Doctor')
+      is_doctor=False  # Luôn đặt là False vì chỉ đăng ký bệnh nhân
     )
       
     user.save()
 
-    if user_status == 'Doctor':
-      specialty = request.POST.get('Speciality')
-      specialty_name = Specialty.objects.get(name=specialty)
-      bio = request.POST.get('bio')
-      doctor = Doctors.objects.create(user=user, specialty=specialty_name, bio=bio)
-      doctor.save()
-        
-    elif user_status == 'Patient':
-        insurance = request.POST.get('insurance')
-        patient = Patients.objects.create(user=user, insurance=insurance)
-        patient.save()
+    # Chỉ xử lý đăng ký bệnh nhân
+    insurance = request.POST.get('insurance')
+    patient = Patients.objects.create(user=user, insurance=insurance)
+    patient.save()
 
     messages.success(request, 'Your account has been successfully registered. Please login.', extra_tags='success')
 
-
-  return render(request, 'users/register.html' , {'specialities':specialities})
-
+  return render(request, 'users/register.html', {'specialities': specialities})
 
 def login_view(request):
-  if request.method == 'POST':
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-
-    user = authenticate(request, username=username, password=password)
-
-    if user is not None:
-      login(request, user)
-
-      if user.is_doctor:
-        return redirect('doctor_dashboard')
-
-      elif Patients.objects.filter(user=user).exists():
-        return redirect('patient_dashboard')
-    else:
-      messages.error(request, 'Incorrect username or password')
-      
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Đơn giản hóa quá trình đăng nhập
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            
+            # Chuyển hướng dựa trên vai trò
+            if hasattr(user, 'nurses'):
+                return redirect('nurse_dashboard')
+            elif user.is_doctor:
+                return redirect('doctor_dashboard')
+            elif hasattr(user, 'patients'):
+                return redirect('patient_dashboard')
+        else:
+            messages.error(request, 'Incorrect username or password')
+    
     return render(request, 'users/login.html')
-  
-  return render(request, 'users/login.html')
-
 
 def forgot_view(request):
     if request.method == 'POST':
@@ -153,8 +151,8 @@ def reset_view(request,token):
         return render(request, 'users/reset.html', {'token': token} )
     return render(request, 'users/reset.html',{'token': token})
 
-
 @login_required(login_url='/login')
 def logout_view(request):
     logout(request)
     return redirect('login')
+

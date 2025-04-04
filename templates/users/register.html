@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card shadow-lg mx-auto mt-5" style="max-width: 34rem;">
   <div class="card-body p-4">
-    <h1 class="fs-4 card-title fw-bold mb-3 text-center">Register</h1>
+    <h1 class="fs-4 card-title fw-bold mb-3 text-center">Patient Registration</h1>
 
     <form method="POST" class="needs-validation" novalidate="" autocomplete="off" enctype="multipart/form-data">
       {% csrf_token %}
@@ -26,33 +26,12 @@
         {% endfor %}
       {% endif %}
 
+      <!-- Đã loại bỏ select user_status vì chỉ cho phép đăng ký bệnh nhân -->
+      <!-- Đã loại bỏ các trường specialty và bio dành cho bác sĩ -->
+      
       <div class="mb-3">
-        <label class="mb-2 text-muted" for="user_status">Choose Your Status :</label>
-        <select class="form-select" name="user_config" id="user_status">
-          <option value="Doctor" {% if user_config == 'Doctor' %}selected{% endif %}>Doctor</option>
-          <option value="Patient" {% if user_config == 'Patient' %}selected{% endif %}>Patient</option>
-        </select>
-      </div>
-
-      <div id="specialty_block" class="mb-3" style="display: {% if user_config == 'Doctor' %}block{% else %}none{% endif %}">
-        <label class="mb-2 text-muted" for="specialty">Specialty</label>
-        <select name="Speciality" class="form-select" id="">
-          {% for speciality in specialities %}
-          <option value="{{speciality.name}}">{{speciality.name}}</option>
-          {%endfor%}
-        </select>
-        <div class="invalid-feedback">Specialty is required for doctors</div>
-      </div>
-      
-      <div id="bio_block" class="mb-3" style="display: {% if user_config == 'Doctor' %}block{% else %}none{% endif %}">
-          <label class="mb-2 text-muted" for="bio">Bio</label>
-          <textarea id="bio" class="form-control" name="bio" {% if user_config == 'Doctor' %}required{% endif %}></textarea>
-          <div class="invalid-feedback">Bio is required for doctors</div>
-      </div>
-      
-      <div id="insurance_block" class="mb-3" style="display: {% if user_config == 'Patient' %}block{% else %}none{% endif %}">
           <label class="mb-2 text-muted" for="insurance">Insurance</label>
-          <input id="insurance" type="text" class="form-control" name="insurance" {% if user_config == 'Patient' %}required{% endif %} />
+          <input id="insurance" type="text" class="form-control" name="insurance" required />
           <div class="invalid-feedback">Insurance is required for patients</div>
       </div>
 
@@ -138,33 +117,5 @@
     </div>
   </div>
 </div>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    toggleFields();
-
-    document.getElementById('user_status').addEventListener('change', function() {
-      toggleFields();
-    });
-
-    function toggleFields() {
-      var userConfig = document.getElementById('user_status').value;
-      var specialtyBlock = document.getElementById('specialty_block');
-      var bioBlock = document.getElementById('bio_block');
-      var insuranceBlock = document.getElementById('insurance_block');
-
-      if (userConfig === 'Doctor') {
-        specialtyBlock.style.display = 'block';
-        bioBlock.style.display = 'block';
-        insuranceBlock.style.display = 'none';
-      } else if (userConfig === 'Patient') {
-        specialtyBlock.style.display = 'none';
-        bioBlock.style.display = 'none';
-        insuranceBlock.style.display = 'block';
-      }
-    }
-  });
-</script>
-
 
 {% endblock content %}

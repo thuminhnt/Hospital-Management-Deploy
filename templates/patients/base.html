@@ -10,13 +10,10 @@
   <link  href="{% static 'css/style-appointments.css' %}" rel="stylesheet">
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
   <link href="{% static 'css/base-style.css' %}" rel="stylesheet"/>
-  {% comment %} <link href="{% static 'css/themify-icons.css' %}" rel="stylesheet"/> {% endcomment %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css">
   <link  href="{% static 'css/style.css' %}" rel="stylesheet">
   <link  href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
   <link  href="{% static 'css/jquery.dataTables.min.css' %}" rel="stylesheet">
-  <link  href="{% static 'css/styleblog.css' %}" rel="stylesheet">
-  <link  href="{% static 'css/styleblog-responsive.css' %}" rel="stylesheet">
 </head>
 
 <body>
@@ -44,13 +41,6 @@
           </a>
         </li>
         <li>
-          <a href="{% url 'patient_blogs' %}">
-            <i>&#9777;&nbsp;&nbsp; </i> 
-            <span>Blogs</span>
-          </a>
-        </li>
-
-        <li>
           <a href="{% url 'book_appointment' %}">
             <i class="bi bi-file-medical-fill"></i>
             <span>&nbsp;&nbsp;Book appoinments</span>
@@ -62,8 +52,19 @@
             <span>&nbsp;&nbsp;My appoinments</span>
           </a>
         </li>
+        <li>
+          <a href="{% url 'patient_prescriptions' %}">
+            <i class="bi bi-receipt"></i> 
+            <span>&nbsp;&nbsp;My Pharmacy</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'medicine_list' %}">
+            <i class="bi bi-capsule"></i> 
+            <span>&nbsp;&nbsp;Pharmacy Inventory</span>
+          </a>
+        </li>
       
-        
         <br><br>
 
         <li>

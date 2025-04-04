@@ -1,0 +1,38 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Kết Quả Thanh Toán{% endblock title %}
+{% block page_title %}Kết Quả Thanh Toán{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        <div class="card">
+          <div class="card-body text-center">
+            {% if is_success %}
+              <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+              </div>
+              <h2 class="mb-4">Thanh Toán Thành Công!</h2>
+              <p class="lead">{{ message }}</p>
+            {% else %}
+              <div class="mb-4">
+                <i class="bi bi-x-circle-fill text-danger" style="font-size: 5rem;"></i>
+              </div>
+              <h2 class="mb-4">Thanh Toán Thất Bại</h2>
+              <p class="lead">{{ message }}</p>
+            {% endif %}
+            
+            <div class="mt-4">
+              <!-- Chỉ giữ lại nút quay lại đơn thuốc chờ thanh toán -->
+              <a href="/pending_prescriptions/" class="btn btn-primary">Quay lại đơn thuốc chờ thanh toán</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

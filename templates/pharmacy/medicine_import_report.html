@@ -1,0 +1,142 @@
+{% extends base_template %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}Medicine Import Report{% endblock title %}
+{% block page_title %}Medicine Import Detailed Report{% endblock page_title %}
+
+{% block content %}
+<main>
+  <section class="recent">
+    <div class="table-div">
+      <div class="table-card">
+        {% if messages %}
+        <div class="row">
+          <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-filter me-2"></i>Report Filters
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="get" class="row align-items-end">
+              <div class="col-md-3 mb-3">
+                <label for="start_date" class="form-label text-dark">
+                  <i class="fas fa-calendar-alt me-2 text-primary"></i>From Date
+                </label>
+                <input type="date" name="start_date" id="start_date" 
+                       class="form-control" value="{{ start_date }}">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="end_date" class="form-label text-dark">
+                  <i class="fas fa-calendar-alt me-2 text-primary"></i>To Date
+                </label>
+                <input type="date" name="end_date" id="end_date" 
+                       class="form-control" value="{{ end_date }}">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="medicine_name" class="form-label text-dark">
+                  <i class="fas fa-pills me-2 text-info"></i>Medicine Name
+                </label>
+                <input type="text" name="medicine_name" id="medicine_name" 
+                       class="form-control" placeholder="Search by medicine name">
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Filter Report
+                  </button>
+                  <a href="{% url 'medicine_import_report' %}" class="btn btn-secondary">
+                    <i class="fas fa-sync me-2"></i>Reset
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-header bg-info text-white">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h5 class="mb-0">
+                  <i class="fas fa-chart-bar me-2"></i>Import Details
+                </h5>
+              </div>
+              <div class="col-md-6 text-end">
+                <h5 class="mb-0">
+                  Total Import Value: 
+                  <span class="text-danger fw-bold">
+                    {{ total_import_value|floatformat:2 }} VND
+                  </span>
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th class="text-white">Import ID</th>
+                    <th class="text-white">Medicine Name</th>
+                    <th class="text-white">Quantity</th>
+                    <th class="text-white">Import Date</th>
+                    <th class="text-white">Unit Import Price</th>
+                    <th class="text-white">Total Import Price</th>
+                    <th class="text-white">Imported By</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in import_logs %}
+                  <tr>
+                    <td class="text-dark">{{ log.id }}</td>
+                    <td class="text-dark">{{ log.medicine.name }}</td>
+                    <td class="text-primary">{{ log.quantity_imported }}</td>
+                    <td class="text-dark">{{ log.import_date|date:"d/m/Y H:i" }}</td>
+                    <td class="text-dark">{{ log.medicine.import_price|intcomma }} VND</td>
+                    <td class="text-success fw-bold">{{ log.total_import_price|intcomma }} VND</td>
+                    <td class="text-dark">
+                      {% if log.nurse %}
+                        {{ log.nurse.user.first_name }} {{ log.nurse.user.last_name }}
+                      {% else %}
+                        Admin
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="7" class="text-center text-muted">
+                      <i class="fas fa-box-open fa-3x mb-3"></i>
+                      <p>No Import Records Found</p>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot class="table-secondary">
+                  <tr>
+                    <td colspan="5" class="text-end fw-bold text-dark">Total:</td>
+                    <td colspan="2" class="text-danger fw-bold">
+                      {{ total_import_value|intcomma }} VND
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
