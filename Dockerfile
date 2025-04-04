@@ -20,11 +20,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy toàn bộ mã nguồn
 COPY . .
 
-# Collectstatic
-RUN python manage.py collectstatic --noinput
+# Tạo thư mục staticfiles nếu chưa tồn tại
+RUN mkdir -p staticfiles
 
 # Migrate database
 RUN python manage.py migrate
+
+# Collectstatic với cờ --clear
+RUN python manage.py collectstatic --clear --noinput
 
 # Expose port
 EXPOSE 8000
